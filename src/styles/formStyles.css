@@ -1,0 +1,160 @@
+/* Import vue3-form-generator legacy theme as base */
+@import '@kevinkosterr/vue3-form-generator/themes/legacy.css';
+
+/* Override legacy theme to match Tailwind-like styling */
+
+.crud-form {
+  padding: 1rem 0;
+}
+
+/* Form group layout */
+.vue-form-generator .form-group {
+  margin-bottom: 1rem;
+}
+
+.vue-form-generator .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Override form-control to match the target design */
+.vue-form-generator .form-control {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #1f2937;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  box-shadow: none;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.vue-form-generator .form-control:focus {
+  color: #1f2937;
+  background-color: #fff;
+  border-color: #93c5fd;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.vue-form-generator .form-control::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+.vue-form-generator .form-control:disabled {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  opacity: 0.65;
+}
+
+/* Inputs that don't get .form-control class */
+.vue-form-generator input:not([type=checkbox],
+[type=submit],
+[type=radio],
+[type=color],
+[type=reset]),
+.vue-form-generator textarea,
+.vue-form-generator select {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #1f2937;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.vue-form-generator input:not([type=checkbox],
+[type=submit],
+[type=radio],
+[type=color],
+[type=reset]):focus,
+.vue-form-generator textarea:focus,
+.vue-form-generator select:focus {
+  border-color: #93c5fd;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.vue-form-generator textarea {
+  min-height: calc(1.5em + 1rem + 2px);
+  resize: vertical;
+}
+
+.vue-form-generator select {
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  appearance: none;
+}
+
+/* Error state — target inputs inside form-group that has errors */
+.vue-form-generator .form-group:has(.errors) input:not([type=checkbox]),
+.vue-form-generator .form-group:has(.errors) textarea,
+.vue-form-generator .form-group:has(.errors) select {
+  border-color: #dc2626;
+}
+
+.vue-form-generator .form-group:has(.errors) input:not([type=checkbox]):focus,
+.vue-form-generator .form-group:has(.errors) textarea:focus,
+.vue-form-generator .form-group:has(.errors) select:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.vue-form-generator .form-group:has(.errors) label {
+  color: #dc2626;
+}
+
+.vue-form-generator .form-group .errors .error {
+  color: #dc2626;
+  font-size: 0.8em;
+}
+
+.vue-form-generator .form-group .errors .error span {
+  display: block;
+  background-image: none;
+  padding-left: 0;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Required field asterisk color */
+.vue-form-generator .form-group:has(input[required]) > label:after {
+  color: #dc2626;
+}
+
+/* Ensure field-wrap and all children fill full width */
+.vue-form-generator .field-wrap {
+  display: block;
+  width: 100%;
+}
+
+.vue-form-generator .field-wrap .wrapper {
+  width: 100%;
+}
+
+.vue-form-generator .field-wrap .wrapper input {
+  width: 100%;
+}
+
+/* Hint text */
+.vue-form-generator .hint {
+  font-style: normal;
+  font-size: 0.8em;
+  color: #6b7280;
+}

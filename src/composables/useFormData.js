@@ -1,17 +1,18 @@
 /**
  * Form Data Management Composable
- * 
+ *
  * Handles form data loading, submission, and state management.
- * Includes API integration and form submission logic.
+ * Uses @uecsio/api-client for API integration.
  */
 
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 export function useFormData(props) {
   const router = useRouter()
   const { t } = useI18n()
+  const apiClient = inject('crudFormApiClient')
 
   // Reactive data
   const formData = reactive({})
@@ -26,35 +27,17 @@ export function useFormData(props) {
    */
   const loadFormData = async () => {
     if (isCreateForm.value) {
-      // Initialize form with default model data
       Object.assign(formData, props.model)
     } else {
-      // Load existing data
-      const extraCriteria = props.extraQueryString ? `?${props.extraQueryString}` : ''
-      const url = `${props.apiBaseUrl}${props.path}/${props.modelId}${extraCriteria}`
-      
+      const params = props.extraQueryString
+        ? Object.fromEntries(new URLSearchParams(props.extraQueryString))
+        : undefined
+
       try {
-        const response = await fetch(url)
-        if (!response.ok) {
-          console.warn(`API endpoint not found: ${url} (${response.status})`)
-          // For edit mode, initialize with empty data if API doesn't exist
-          Object.assign(formData, props.model)
-          return
-        }
-        
-        const contentType = response.headers.get('content-type')
-        if (!contentType || !contentType.includes('application/json')) {
-          console.warn(`API endpoint returned non-JSON response: ${url}`)
-          // Initialize with default model data
-          Object.assign(formData, props.model)
-          return
-        }
-        
-        const data = await response.json()
+        const data = await apiClient.get(`${props.path}/${props.modelId}`, { params })
         Object.assign(formData, data)
       } catch (error) {
         console.error('Error loading form data:', error)
-        // Fallback: initialize with default model data
         Object.assign(formData, props.model)
       }
     }
@@ -85,59 +68,18 @@ export function useFormData(props) {
         })
       })
 
-      const url = isCreateForm.value 
-        ? `${props.apiBaseUrl}${props.path}`
-        : `${props.apiBaseUrl}${props.path}/${props.modelId}`
-
-      const method = isCreateForm.value ? 'POST' : 'PATCH'
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type')
-        let errorMessage = `HTTP error! status: ${response.status}`
-        
-        if (contentType && contentType.includes('application/json')) {
-          try {
-            const errorData = await response.json()
-            errorMessage = errorData.message || errorMessage
-          } catch (e) {
-            // Use default error message
-          }
-        }
-        
-        throw new Error(errorMessage)
-      }
-
-      const contentType = response.headers.get('content-type')
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server returned invalid response format')
-      }
-
-      const savedModel = await response.json()
+      const savedModel = isCreateForm.value
+        ? await apiClient.post(props.path, formData)
+        : await apiClient.patch(`${props.path}/${props.modelId}`, formData)
 
       // Handle image uploads if any
       const imageFields = props.schema.fields.filter(field => field.type === 'imageUpload')
       for (const imageField of imageFields) {
         if (formData[imageField.model]) {
           const imageType = imageField.imageType || 'default'
-          const imageUrl = `${props.apiBaseUrl}image/${savedModel.id}/${imageType}`
-          
-          await fetch(imageUrl, {
-            method: 'POST',
-            body: formData[imageField.model]
-          })
+          await apiClient.upload(`image/${savedModel.id}/${imageType}`, formData[imageField.model])
         }
       }
-
-      // Success message
-      console.log(t('messages.orderCreated'))
 
       // Redirect
       if (props.redirectRoute === 'prev') {
@@ -148,7 +90,6 @@ export function useFormData(props) {
 
     } catch (error) {
       console.error('Error saving data:', error)
-      console.log(t('messages.networkError'))
     } finally {
       isLoading.value = false
     }
@@ -166,13 +107,10 @@ export function useFormData(props) {
   }
 
   return {
-    // State
     formData,
     formLoaded,
     isLoading,
     isCreateForm,
-    
-    // Methods
     loadFormData,
     handleSubmit,
     handleCancel

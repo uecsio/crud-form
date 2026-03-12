@@ -1,16 +1,16 @@
 # @uecsio/crud-form
 
-A powerful Vue 3 CRUD form component with FormKit integration, async validation, and customizable field types.
+A Vue 3 CRUD form component powered by [vue3-form-generator](https://github.com/kevinkosterr/vue3-form-generator) with Tailwind CSS styling, i18n support, and customizable field types.
 
 ## Features
 
-- 🚀 **Vue 3 Composition API** - Built with modern Vue 3 features
-- 📝 **FormKit Integration** - Leverages FormKit for robust form handling
-- ⚡ **Async Validation** - Built-in support for asynchronous validation rules
-- 🎨 **Customizable Fields** - Register custom field types and components
-- 🌐 **i18n Support** - Full internationalization support
-- 🎯 **TypeScript Ready** - Complete TypeScript definitions included
-- 🔧 **Flexible Configuration** - Highly configurable for various use cases
+- **Vue 3 Composition API** — Built with modern Vue 3 features
+- **vue3-form-generator** — Schema-based form rendering with built-in field types
+- **Tailwind CSS** — Styled with Tailwind utility classes (provided by consuming app)
+- **i18n Support** — Automatic translation of field labels and placeholders via vue-i18n
+- **Validation** — Built-in and custom validators with error styling
+- **Customizable Fields** — Register custom field types and components
+- **TypeScript Ready** — Complete TypeScript definitions included
 
 ## Installation
 
@@ -20,10 +20,8 @@ npm install @uecsio/crud-form
 
 ## Peer Dependencies
 
-Make sure you have the following peer dependencies installed:
-
 ```bash
-npm install vue@^3.0.0 @formkit/core@^1.6.0 @formkit/vue@^1.6.0 @formkit/i18n@^1.6.0 @coreui/vue@^5.5.0 @fortawesome/fontawesome-svg-core@^7.1.0 @fortawesome/free-solid-svg-icons@^7.1.0 @fortawesome/vue-fontawesome@^3.1.2 vue-i18n@^9.0.0 vue-router@^4.0.0
+npm install vue@^3.0.0 @uecsio/api-client tailwindcss@>=3.0
 ```
 
 ## Quick Start
@@ -32,11 +30,33 @@ npm install vue@^3.0.0 @formkit/core@^1.6.0 @formkit/vue@^1.6.0 @formkit/i18n@^1
 
 ```javascript
 import { createApp } from 'vue'
-import CrudForm from '@uecsio/crud-form'
+import { ApiClient } from '@uecsio/api-client'
+import CrudFormPlugin from '@uecsio/crud-form'
+import '@uecsio/crud-form/dist/crud-form.css'
 
 const app = createApp(App)
-app.use(CrudForm)
+
+// Create or import your ApiClient instance
+const apiClient = new ApiClient({
+  baseUrl: 'https://api.example.com',
+  getToken: () => localStorage.getItem('token'),
+  saveToken: (token) => localStorage.setItem('token', token),
+  clearToken: () => localStorage.removeItem('token'),
+  onUnauthorized: () => {
+    router.push('/login')
+  }
+})
+
+app.use(CrudFormPlugin, {
+  apiClient,
+  // Custom error messages keyed by validator function name
+  messages: {
+    passwordMatchValidator: 'Passwords do not match',
+  }
+})
 ```
+
+The `apiClient` instance handles base URL, authentication tokens, and 401 redirects — the CrudForm component uses it for all API calls automatically.
 
 ### 2. Use the Component
 
@@ -46,41 +66,40 @@ app.use(CrudForm)
     :schema="userSchema"
     :model="userModel"
     :model-id="userId"
-    path="/users"
+    path="users"
     redirect-route="users.list"
-    :redirect-params="{ page: 1 }"
     form-title="Edit User"
-    api-base-url="/api"
   />
 </template>
 
 <script setup>
-import { CrudForm } from '@uecsio/crud-form'
-
 const userSchema = {
   fields: [
     {
       type: 'input',
+      inputType: 'text',
       model: 'name',
-      label: 'users.form.name',
-      placeholder: 'users.form.namePlaceholder',
+      label: 'userName',
+      placeholder: 'userName',
       required: true,
-      validation: 'required|length:2,50',
-      maxLength: 50
+      min: 2,
+      max: 50
     },
     {
-      type: 'email',
+      type: 'input',
+      inputType: 'email',
       model: 'email',
-      label: 'users.form.email',
+      label: 'userEmail',
+      placeholder: 'userEmail',
       required: true,
-      validation: 'required|email'
+      max: 255
     },
     {
       type: 'textarea',
       model: 'bio',
-      label: 'users.form.bio',
-      rows: 4,
-      maxLength: 500
+      label: 'userBio',
+      placeholder: 'userBio',
+      max: 500
     }
   ]
 }
@@ -91,7 +110,7 @@ const userModel = {
   bio: ''
 }
 
-const userId = 123 // For edit mode, omit for create mode
+const userId = 123 // For edit mode; omit for create mode
 </script>
 ```
 
@@ -99,156 +118,138 @@ const userId = 123 // For edit mode, omit for create mode
 
 | Prop | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `schema` | Object | ✅ | - | Form schema configuration |
-| `model` | Object | ❌ | `{}` | Default form data |
-| `modelId` | String/Number | ❌ | - | Model ID for edit mode |
-| `path` | String | ✅ | - | API endpoint path |
-| `extraQueryString` | String | ❌ | `''` | Additional query parameters |
-| `redirectRoute` | String | ✅ | - | Route name to redirect after save |
-| `redirectParams` | Object | ❌ | `{}` | Parameters for redirect route |
-| `formTitle` | String | ❌ | `''` | Form header title |
-| `apiBaseUrl` | String | ❌ | `'/api'` | Base URL for API calls |
+| `schema` | Object | Yes | — | vue3-form-generator schema with `fields` array |
+| `model` | Object | No | `{}` | Default form data |
+| `modelId` | String/Number | No | — | Model ID for edit mode |
+| `path` | String | Yes | — | API endpoint path |
+| `extraQueryString` | String | No | `''` | Additional query parameters |
+| `redirectRoute` | String | Yes | — | Route name to redirect after save |
+| `redirectParams` | Object | No | `{}` | Parameters for redirect route |
+| `formTitle` | String | No | `''` | Form header title |
+| `formOptions` | Object | No | `{ validateAfterLoad: false, validate: 'onChanged' }` | vue3-form-generator options |
 
-## Schema Configuration
+## Schema Format
 
-### Basic Field Types
+Schemas follow the [vue3-form-generator](https://kevinkosterr.github.io/vue3-form-generator/) format. Labels and placeholders are automatically translated via vue-i18n — just use i18n keys as values.
+
+### Field Properties
 
 ```javascript
-const schema = {
-  fields: [
-    {
-      type: 'input',           // Field type
-      model: 'fieldName',      // Form data property
-      label: 'Field Label',    // Display label
-      placeholder: 'Placeholder text',
-      required: true,          // Required validation
-      validation: 'required|email', // Validation rules
-      maxLength: 100,          // Max length for text inputs
-      disabled: false,         // Disable field
-      readonly: false,         // Read-only field
-      cols: {                  // Bootstrap grid columns
-        xs: 12,
-        sm: 6,
-        md: 4,
-        lg: 3
-      }
-    }
-  ]
+{
+  type: 'input',           // Field type (see below)
+  inputType: 'text',       // HTML input type (text, email, password, phone, etc.)
+  model: 'fieldName',      // Key in the form model
+  label: 'i18nKey',        // Label text or i18n key (auto-translated)
+  placeholder: 'i18nKey',  // Placeholder text or i18n key (auto-translated)
+  required: true,          // Adds required validation automatically
+  min: 4,                  // Min length/value — validated automatically
+  max: 128,                // Max length/value — validated automatically
+  disabled: false,
+  readonly: false,
+  validator: [],            // Array of validator functions
+  transforms: [],           // Array of transform functions applied before submit
 }
 ```
 
 ### Supported Field Types
 
-- `input` - Text input
-- `email` - Email input
-- `password` - Password input
-- `number` - Number input
-- `date` - Date input
-- `textarea` - Multi-line text
-- `select` - Dropdown select
-- `checkbox` - Single checkbox
-- `radios` - Radio button group
-- `file` - File upload
+| Type | Description |
+|------|-------------|
+| `input` | Text input (use `inputType` for email, password, phone, etc.) |
+| `password` | Password input with strength indicator |
+| `number` | Number input |
+| `textarea` | Multi-line text |
+| `select` | Native `<select>` dropdown |
+| `checkbox` | Single checkbox |
+| `radio` | Radio button group |
+| `switch` | Toggle switch |
+| `color` | Color picker |
 
-### Select and Radio Fields
+### Select Fields
 
 ```javascript
 {
   type: 'select',
-  model: 'category',
-  label: 'Category',
-  values: [
-    { name: 'Option 1', value: 'opt1' },
-    { name: 'Option 2', value: 'opt2' }
-  ],
+  model: 'role',
+  label: 'userRole',
   required: true,
-  validation: 'required'
+  placeholder: 'Choose a role',  // Shown as first empty option
+  options: [
+    { name: 'Administrator', value: 'admin' },
+    { name: 'Editor', value: 'editor' }
+  ]
 }
 ```
 
-## Async Validation
+## Validation
 
-### Built-in Async Validators
+### Built-in Validators
+
+Fields with `required`, `min`, and `max` properties are validated automatically by vue3-form-generator — no need to add validators manually.
+
+### Custom Validators
+
+Validators are **named functions** that receive `(value, field, model)` and return a **boolean** (`true` = valid):
 
 ```javascript
-{
-  type: 'input',
-  model: 'email',
-  label: 'Email',
-  validation: 'required|email|email_unique:/api/users/check-email'
+export function passwordMatchValidator(value, field, model) {
+  if (!model.password) return true
+  return value === model.password
 }
-```
-
-### Custom Async Validators
-
-```javascript
-import { registerCustomValidation } from '@uecsio/crud-form'
-
-// Register custom validation
-registerCustomValidation('username_available', 
-  async (node, apiUrl) => {
-    const response = await fetch(`${apiUrl}?username=${node.value}`)
-    const data = await response.json()
-    return !data.exists
-  },
-  () => 'Username is already taken',
-  {
-    debounce: 500,
-    skipEmpty: true,
-    async: true
-  }
-)
 
 // Use in schema
 {
   type: 'input',
-  model: 'username',
-  label: 'Username',
-  validation: 'required|username_available:/api/users/check-username'
+  inputType: 'password',
+  model: 'confirmPassword',
+  label: 'confirmPassword',
+  validator: [passwordMatchValidator]
+}
+```
+
+Error messages are set globally via the plugin `messages` option, keyed by the function name:
+
+```javascript
+app.use(CrudFormPlugin, {
+  apiClient,
+  messages: {
+    passwordMatchValidator: 'Passwords do not match',
+  }
+})
+```
+
+> **Note:** Async validators are not supported by vue3-form-generator's synchronous validation loop. Async checks (e.g., uniqueness) should be validated server-side on submit.
+
+### Transforms
+
+Transform functions modify field values before form submission:
+
+```javascript
+{
+  model: 'email',
+  transforms: [
+    (value) => value ? value.trim().toLowerCase() : null
+  ]
 }
 ```
 
 ## Custom Components
 
-### Register Custom Field Type
-
 ```javascript
 import { registerCustomComponent } from '@uecsio/crud-form'
-import MyCustomComponent from './MyCustomComponent.vue'
+import MyCustomField from './MyCustomField.vue'
 
-registerCustomComponent('customField', {
-  component: 'MyCustomComponent',
-  props: {
-    // Default props for this field type
-    customProp: 'defaultValue'
-  },
-  validation: {
-    // Default validation rules
-  },
-  converter: (field, t) => {
-    // Custom schema converter
-    return {
-      $formkit: 'MyCustomComponent',
-      name: field.model,
-      label: t(field.label),
-      // ... other props
-    }
-  }
+registerCustomComponent('myField', {
+  component: MyCustomField,
+  fieldType: 'myField',
+  props: { customProp: 'default' },
+  converter: (field, t) => ({
+    type: 'myField',
+    model: field.model,
+    label: field.label ? t(field.label) : '',
+    // ...
+  })
 })
-```
-
-### Use Custom Component
-
-```javascript
-{
-  type: 'customField',
-  model: 'customData',
-  label: 'Custom Field',
-  props: {
-    // Field-specific props
-    customProp: 'specificValue'
-  }
-}
 ```
 
 ## Composables
@@ -258,21 +259,7 @@ registerCustomComponent('customField', {
 ```javascript
 import { useFormData } from '@uecsio/crud-form'
 
-const props = {
-  schema: mySchema,
-  path: '/users',
-  apiBaseUrl: '/api'
-}
-
-const {
-  formData,      // Reactive form data
-  formLoaded,    // Loading state
-  isLoading,     // Submit loading state
-  isCreateForm,  // Boolean: create vs edit mode
-  loadFormData,  // Function to load form data
-  handleSubmit,  // Function to handle form submission
-  handleCancel   // Function to handle form cancellation
-} = useFormData(props)
+const { formData, formLoaded, isLoading, isCreateForm, loadFormData, handleSubmit, handleCancel } = useFormData(props)
 ```
 
 ### useFormValidation
@@ -280,101 +267,46 @@ const {
 ```javascript
 import { useFormValidation } from '@uecsio/crud-form'
 
-const {
-  addErrorStyling,           // Add error styling to form
-  initializeAsyncValidations, // Initialize async validations
-  createAsyncValidation,     // Create custom async validation
-  validateFormAsync,         // Validate entire form
-  validateFieldAsync         // Validate single field
-} = useFormValidation()
-```
-
-## Examples
-
-### User Registration Form
-
-```javascript
-import { userRegistrationSchema } from '@uecsio/crud-form'
-
-const registrationSchema = userRegistrationSchema
-```
-
-### Rich Text Editor
-
-```javascript
-import { richTextExample } from '@uecsio/crud-form'
-
-const blogPostSchema = richTextExample
-```
-
-### Async Validation Example
-
-```javascript
-import { asyncValidationExample } from '@uecsio/crud-form'
-
-const formWithAsyncValidation = asyncValidationExample
+const { isValid, fieldErrors, onFieldValidated, validateField, validateForm, resetValidation } = useFormValidation()
 ```
 
 ## Styling
 
-The component includes built-in SCSS styles that integrate with CoreUI. You can customize the appearance by overriding CSS variables:
+The package includes CSS that bundles the vue3-form-generator legacy theme with custom overrides. Import it in your app entry:
 
-```scss
-.crud-form {
-  --cui-primary: #your-primary-color;
-  --cui-danger: #your-error-color;
-  --cui-border-color: #your-border-color;
-}
+```javascript
+import '@uecsio/crud-form/dist/crud-form.css'
 ```
+
+The form card wrapper uses Tailwind utility classes (`bg-white`, `rounded-lg`, `shadow`, etc.), so the consuming app must have Tailwind CSS configured.
+
+Error states automatically apply red borders and labels to fields with validation errors.
 
 ## API Integration
 
+The component uses `@uecsio/api-client` for all HTTP requests. Pass your `apiClient` instance via the plugin options — the client's `baseUrl` and authentication are used automatically.
+
 The component automatically handles:
 
-- **GET** requests to load existing data (edit mode)
-- **POST** requests to create new records
-- **PATCH** requests to update existing records
-- File upload handling for image fields
-- Error handling and user feedback
+- **GET** `{path}/{id}` — Load existing record (edit mode)
+- **POST** `{path}` — Create new record
+- **PATCH** `{path}/{id}` — Update existing record
+- **UPLOAD** `image/{id}/{type}` — Upload images (for `imageUpload` fields)
 
-### API Endpoints Expected
-
-- `GET /api/{path}/{id}` - Load existing record
-- `POST /api/{path}` - Create new record
-- `PATCH /api/{path}/{id}` - Update existing record
-- `POST /api/image/{id}/{type}` - Upload images
-
-## TypeScript Support
-
-Full TypeScript definitions are included. Import types as needed:
+## TypeScript
 
 ```typescript
-import type { 
-  CrudFormProps, 
-  FormSchema, 
+import type {
+  CrudFormProps,
+  FormSchema,
   FieldConfig,
-  AsyncValidationConfig 
+  ValidationConfig,
+  ComponentConfig,
+  UseFormDataReturn,
+  UseFormValidationReturn
 } from '@uecsio/crud-form'
 ```
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Changelog
-
-### 0.1.1
-- Initial release
-- Basic CRUD functionality
-- Async validation support
-- Custom component registration
-- TypeScript definitions
-- FontAwesome icon integration
+MIT

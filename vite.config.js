@@ -21,13 +21,8 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'vue',
-        '@formkit/core',
-        '@formkit/vue',
-        '@formkit/i18n',
-        '@coreui/vue',
-        '@fortawesome/fontawesome-svg-core',
-        '@fortawesome/free-solid-svg-icons',
-        '@fortawesome/vue-fontawesome',
+        '@kevinkosterr/vue3-form-generator',
+        '@uecsio/api-client',
         'vue-i18n',
         'vue-router'
       ],
@@ -35,13 +30,8 @@ export default defineConfig({
         exports: 'named',
         globals: {
           vue: 'Vue',
-          '@formkit/core': 'FormKitCore',
-          '@formkit/vue': 'FormKitVue',
-          '@formkit/i18n': 'FormKitI18n',
-          '@coreui/vue': 'CoreUIVue',
-          '@fortawesome/fontawesome-svg-core': 'FontAwesomeCore',
-          '@fortawesome/free-solid-svg-icons': 'FontAwesomeSolid',
-          '@fortawesome/vue-fontawesome': 'FontAwesomeVue',
+          '@kevinkosterr/vue3-form-generator': 'VueFormGenerator',
+          '@uecsio/api-client': 'ApiClient',
           'vue-i18n': 'VueI18n',
           'vue-router': 'VueRouter'
         }

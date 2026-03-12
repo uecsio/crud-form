@@ -1,7 +1,7 @@
 {
   "name": "@uecsio/crud-form",
-  "version": "0.1.1",
-  "description": "A powerful Vue 3 CRUD form component with FormKit integration, async validation, and customizable field types",
+  "version": "1.1.0",
+  "description": "A Vue 3 CRUD form component with vue3-form-generator, Tailwind CSS styling, async validation, and customizable field types",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -16,11 +16,11 @@
     "vue3",
     "form",
     "crud",
-    "formkit",
+    "form-generator",
+    "tailwind",
     "validation",
     "async-validation",
-    "component",
-    "typescript"
+    "component"
   ],
   "author": "UECSIo",
   "license": "MIT",
@@ -33,16 +33,12 @@
   },
   "homepage": "https://github.com/uecsio/crud-form#readme",
   "peerDependencies": {
-    "@formkit/core": "^1.6.0",
-    "@formkit/i18n": "^1.6.0",
-    "@formkit/vue": "^1.6.0",
+    "@uecsio/api-client": ">=1.0.0",
+    "tailwindcss": ">=3.0",
     "vue": "^3.0.0"
   },
   "dependencies": {
-    "@coreui/vue": "^5.5.0",
-    "@fortawesome/fontawesome-svg-core": "^7.1.0",
-    "@fortawesome/free-solid-svg-icons": "^7.1.0",
-    "@fortawesome/vue-fontawesome": "^3.1.2",
+    "@kevinkosterr/vue3-form-generator": "^2.0.0",
     "vue-i18n": "^9.0.0",
     "vue-router": "^4.0.0"
   },
