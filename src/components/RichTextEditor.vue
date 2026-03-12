@@ -1,38 +1,39 @@
 <template>
-  <div class="rich-text-editor">
-    <label v-if="label" class="formkit-label" :for="inputId">
+  <div class="rich-text-editor mb-4">
+    <label v-if="label" class="block mb-2 text-sm font-medium text-gray-700" :for="inputId">
       {{ label }}
-      <span v-if="required" style="color: var(--cui-danger);">*</span>
+      <span v-if="required" class="text-red-600">*</span>
     </label>
-    
-    <div class="editor-toolbar" v-if="showToolbar">
-      <button type="button" @click="formatText('bold')" class="toolbar-btn">
+
+    <div v-if="showToolbar" class="flex gap-2 mb-0 p-2 bg-gray-50 border border-gray-300 border-b-0 rounded-t-md">
+      <button type="button" @click="formatText('bold')" class="px-2 py-1 border border-gray-300 bg-white rounded text-sm hover:bg-gray-50 active:bg-gray-100">
         <strong>B</strong>
       </button>
-      <button type="button" @click="formatText('italic')" class="toolbar-btn">
+      <button type="button" @click="formatText('italic')" class="px-2 py-1 border border-gray-300 bg-white rounded text-sm hover:bg-gray-50 active:bg-gray-100">
         <em>I</em>
       </button>
-      <button type="button" @click="formatText('underline')" class="toolbar-btn">
+      <button type="button" @click="formatText('underline')" class="px-2 py-1 border border-gray-300 bg-white rounded text-sm hover:bg-gray-50 active:bg-gray-100">
         <u>U</u>
       </button>
     </div>
-    
+
     <div
       ref="editor"
       :id="inputId"
-      class="editor-content"
+      class="w-full p-3 text-base leading-relaxed text-gray-900 bg-white border border-gray-300 outline-none resize-y focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+      :class="[showToolbar ? 'rounded-b-md' : 'rounded-md']"
       contenteditable="true"
       @input="handleInput"
       @blur="handleBlur"
       :placeholder="placeholder"
       :style="{ minHeight: minHeight + 'px' }"
     ></div>
-    
-    <div v-if="help" class="formkit-help">
+
+    <div v-if="help" class="mt-1 text-sm text-gray-500">
       {{ help }}
     </div>
-    
-    <div v-if="errorMessage" class="formkit-message">
+
+    <div v-if="errorMessage" class="mt-1 text-sm text-red-600">
       {{ errorMessage }}
     </div>
   </div>
@@ -94,63 +95,53 @@ const editor = ref(null)
 const inputId = computed(() => `rich-text-${Math.random().toString(36).substr(2, 9)}`)
 const errorMessage = ref('')
 
-// Watch for external value changes
 watch(() => props.modelValue, (newValue) => {
   if (editor.value && editor.value.innerHTML !== newValue) {
     editor.value.innerHTML = newValue
   }
 })
 
-// Handle input changes
 const handleInput = (event) => {
   const content = event.target.innerHTML
   emit('update:modelValue', content)
-  
-  // Clear error when user starts typing
   if (errorMessage.value) {
     errorMessage.value = ''
   }
 }
 
-// Handle blur event
 const handleBlur = (event) => {
   emit('blur', event)
   validateContent()
 }
 
-// Format text
 const formatText = (format) => {
   document.execCommand(format, false, null)
   editor.value.focus()
 }
 
-// Validation
 const validateContent = () => {
   const content = editor.value?.innerHTML || ''
-  
-  // Check required
+
   if (props.required && !content.trim()) {
     errorMessage.value = props.validationMessages.required || 'This field is required'
     return false
   }
-  
-  // Check rich text validation (example)
+
   if (props.validation.includes('rich_text_min_words')) {
     const minWords = parseInt(props.validation.match(/rich_text_min_words:(\d+)/)?.[1] || '10')
     const textContent = content.replace(/<[^>]*>/g, '').trim()
     const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length
-    
+
     if (wordCount < minWords) {
       errorMessage.value = props.validationMessages.rich_text_min_words || `Content must have at least ${minWords} words`
       return false
     }
   }
-  
+
   errorMessage.value = ''
   return true
 }
 
-// Initialize editor content
 onMounted(() => {
   if (editor.value && props.modelValue) {
     editor.value.innerHTML = props.modelValue
@@ -158,102 +149,10 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
-.rich-text-editor {
-  margin-bottom: 1rem;
-}
-
-.editor-toolbar {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  background-color: var(--cui-secondary-bg);
-  border: 1px solid var(--cui-border-color);
-  border-bottom: none;
-  border-radius: 0.375rem 0.375rem 0 0;
-}
-
-.toolbar-btn {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--cui-border-color);
-  background-color: var(--cui-body-bg);
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  
-  &:hover {
-    background-color: var(--cui-secondary-bg);
-  }
-  
-  &:active {
-    background-color: var(--cui-tertiary-bg);
-  }
-}
-
-.editor-content {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--cui-body-color);
-  background-color: var(--cui-body-bg);
-  border: 1px solid var(--cui-border-color);
-  border-radius: 0 0 0.375rem 0.375rem;
-  outline: none;
-  resize: vertical;
-  
-  &:focus {
-    border-color: var(--cui-border-color-translucent);
-    box-shadow: none;
-  }
-  
-  &:empty:before {
-    content: attr(placeholder);
-    color: var(--cui-text-muted);
-    pointer-events: none;
-  }
-  
-  // Rich text content styling
-  :deep(p) {
-    margin: 0 0 0.5rem 0;
-    
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-  
-  :deep(strong) {
-    font-weight: bold;
-  }
-  
-  :deep(em) {
-    font-style: italic;
-  }
-  
-  :deep(u) {
-    text-decoration: underline;
-  }
-}
-
-.formkit-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--cui-body-color);
-  font-size: 0.875rem;
-}
-
-.formkit-help {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--cui-text-muted);
-}
-
-.formkit-message {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--cui-danger);
+<style scoped>
+.rich-text-editor [contenteditable="true"]:empty:before {
+  content: attr(placeholder);
+  color: #9ca3af;
+  pointer-events: none;
 }
 </style>
