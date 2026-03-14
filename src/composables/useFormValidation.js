@@ -12,10 +12,12 @@ export function useFormValidation() {
 
   /**
    * Handles the field-validated event from vue3-form-generator
+   * @param {boolean} isValid - Whether the field is valid
    * @param {Array} errors - Array of error messages
    * @param {Object} field - Field schema object
    */
-  const onFieldValidated = (errors, field) => {
+  const onFieldValidated = (isValid, errors, field) => {
+    if (!field) return
     if (errors && errors.length > 0) {
       fieldErrors.value[field.model] = errors
     } else {
