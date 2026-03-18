@@ -33,7 +33,7 @@
                 icon="floppy-disk"
                 class="-ml-1 mr-2"
               />
-              {{ te('common.save') ? t('common.save') : 'Save' }}
+              {{ t('common.save') }}
             </button>
           </div>
         </div>
@@ -103,7 +103,7 @@ const props = defineProps({
 })
 
 // Composables
-const { t, te } = useI18n()
+const { t } = useI18n()
 const {
   formData,
   formLoaded,
