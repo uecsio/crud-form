@@ -14,36 +14,28 @@
         />
 
         <!-- Submit Button -->
-        <div class="mt-6 flex justify-end">
-          <button
-            type="button"
-            :disabled="isLoading || !isValid"
-            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            @click="onSubmit"
-          >
-            <svg
-              v-if="isLoading"
-              class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
+        <div class="crud-form-submit-container">
+          <div class="form-group valid field-submit p-0 crud-form-submit-wrapper">
+            <button
+              type="button"
+              :disabled="isLoading || !isValid"
+              class="justify-center inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              @click="onSubmit"
             >
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            <svg
-              v-else
-              class="-ml-1 mr-2 h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            {{ $t('common.save') }}
-          </button>
+              <font-awesome-icon
+                v-if="isLoading"
+                icon="spinner"
+                spin
+                class="-ml-1 mr-2"
+              />
+              <font-awesome-icon
+                v-else
+                icon="floppy-disk"
+                class="-ml-1 mr-2"
+              />
+              {{ t('common.save') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

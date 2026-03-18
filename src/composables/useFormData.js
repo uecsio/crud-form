@@ -60,17 +60,26 @@ export function useFormData(props) {
     isLoading.value = true
 
     try {
+      // Build submission data with only schema-defined fields
+      const schemaFieldNames = props.schema.fields.map(f => f.model)
+      const submitData = {}
+      for (const key of schemaFieldNames) {
+        if (key in formData) {
+          submitData[key] = formData[key]
+        }
+      }
+
       // Apply transforms
       props.schema.fields.filter(el => el.transforms).forEach(el => {
         el.transforms.forEach(transformFunction => {
           const fieldName = el.model
-          formData[fieldName] = transformFunction(formData[fieldName])
+          submitData[fieldName] = transformFunction(submitData[fieldName])
         })
       })
 
       const savedModel = isCreateForm.value
-        ? await apiClient.post(props.path, formData)
-        : await apiClient.patch(`${props.path}/${props.modelId}`, formData)
+        ? await apiClient.post(props.path, submitData)
+        : await apiClient.patch(`${props.path}/${props.modelId}`, submitData)
 
       // Handle image uploads if any
       const imageFields = props.schema.fields.filter(field => field.type === 'imageUpload')
