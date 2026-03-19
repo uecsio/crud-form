@@ -15,6 +15,7 @@ import { createDebouncedValidator, createApiValidator } from './plugins/asyncVal
 
 // Export the main component
 export { default as CrudForm } from './CrudForm.vue'
+export { default as FilterForm } from './FilterForm.vue'
 
 // Export composables
 export { useFormData } from './composables/useFormData.js'

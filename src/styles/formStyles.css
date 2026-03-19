@@ -5,6 +5,11 @@
 
 .crud-form {
   padding: 1rem 1.5rem;
+  color-scheme: light;
+}
+
+.filter-form {
+  color-scheme: light;
 }
 
 /* Form group layout */
