@@ -35,7 +35,8 @@ export default {
   install(app, options = {}) {
     // Register vue3-form-generator so consuming apps don't need to
     app.use(VueFormGenerator, {
-      messages: options.messages || {}
+      messages: options.messages || {},
+      components: options.components || [],
     })
 
     app.component('CrudForm', CrudForm)
