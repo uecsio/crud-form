@@ -172,3 +172,26 @@
 .p-6 { padding: 1.5rem; }
 .border-b { border-bottom-width: 1px; }
 .border-gray-200 { border-color: #e5e7eb; }
+
+/* Custom submit button sizing to bypass potential Tailwind purging in consumer apps */
+.crud-form-submit-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.crud-form-submit-wrapper {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .crud-form-submit-wrapper {
+    width: 33.333333%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .crud-form-submit-wrapper {
+    width: 25%;
+  }
+}
