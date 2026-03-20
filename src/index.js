@@ -7,6 +7,8 @@
 
 import VueFormGenerator from '@kevinkosterr/vue3-form-generator'
 import CrudForm from './CrudForm.vue'
+import FieldEditor from './components/FieldEditor.vue'
+import FieldDatepicker from './components/FieldDatepicker.vue'
 import { useFormData } from './composables/useFormData.js'
 import { useFormValidation } from './composables/useFormValidation.js'
 import { useFormNavigation } from './composables/useFormNavigation.js'
@@ -16,11 +18,25 @@ import { createDebouncedValidator, createApiValidator } from './plugins/asyncVal
 // Export the main component
 export { default as CrudForm } from './CrudForm.vue'
 
+// Export built-in field components
+export { default as FieldEditor } from './components/FieldEditor.vue'
+export { default as FieldDatepicker } from './components/FieldDatepicker.vue'
+
 // Export composables
 export { useFormData } from './composables/useFormData.js'
 export { useFormValidation } from './composables/useFormValidation.js'
 export { useFormNavigation } from './composables/useFormNavigation.js'
 
+
+// Re-export vue3-form-generator composables for custom field components
+export {
+  useFieldProps,
+  useFieldEmits,
+  useFormModel,
+  useFieldAttributes,
+  useValidation,
+  validators,
+} from '@kevinkosterr/vue3-form-generator'
 
 // Export async validation utilities
 export { createDebouncedValidator, createApiValidator, debounce } from './plugins/asyncValidationPlugin.js'
@@ -40,6 +56,10 @@ export default {
     })
 
     app.component('CrudForm', CrudForm)
+
+    // Register built-in field components
+    app.component('FieldEditor', FieldEditor)
+    app.component('FieldDatepicker', FieldDatepicker)
 
     // Provide apiClient for useFormData composable
     if (options.apiClient) {
