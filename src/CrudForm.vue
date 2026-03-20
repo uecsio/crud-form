@@ -113,12 +113,15 @@ const {
 } = useFormValidation()
 
 // Translate schema labels and placeholders via i18n
+// Only translate if the key exists in i18n messages to avoid double-translation
+// when schemas already pre-translate values with i18n.global.t()
+const translateIfExists = (value) => value && te(value) ? t(value) : value
 const translatedSchema = computed(() => ({
   ...props.schema,
   fields: props.schema.fields.map(field => ({
     ...field,
-    label: field.label ? t(field.label) : field.label,
-    placeholder: field.placeholder ? t(field.placeholder) : field.placeholder,
+    label: translateIfExists(field.label),
+    placeholder: translateIfExists(field.placeholder),
   }))
 }))
 
