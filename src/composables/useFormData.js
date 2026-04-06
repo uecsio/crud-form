@@ -30,7 +30,7 @@ export function useFormData(props) {
       Object.assign(formData, props.model)
     } else {
       const params = props.extraQueryString
-        ? Object.fromEntries(new URLSearchParams(props.extraQueryString))
+        ? new URLSearchParams(props.extraQueryString)
         : undefined
 
       try {
