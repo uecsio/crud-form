@@ -94,6 +94,11 @@ const props = defineProps({
       validateAfterLoad: false,
       validate: 'onChanged'
     })
+  },
+  mappers: {
+    type: Object,
+    required: false,
+    default: () => ({})
   }
 })
 
@@ -105,7 +110,7 @@ const {
   isLoading,
   loadFormData,
   handleSubmit
-} = useFormData(props)
+} = useFormData(props, props.mappers)
 
 const {
   isValid,
