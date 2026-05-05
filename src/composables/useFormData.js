@@ -8,11 +8,13 @@
 import { ref, reactive, computed, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useFormMappers } from './useFormMappers.js'
 
-export function useFormData(props) {
+export function useFormData(props, mappers = {}) {
   const router = useRouter()
   const { t } = useI18n()
   const apiClient = inject('crudFormApiClient')
+  const { applyAfterLoad, applyBeforeSubmit } = useFormMappers(mappers)
 
   // Reactive data
   const formData = reactive({})
@@ -27,7 +29,8 @@ export function useFormData(props) {
    */
   const loadFormData = async () => {
     if (isCreateForm.value) {
-      Object.assign(formData, props.model)
+      const mappedModel = applyAfterLoad({ ...props.model })
+      Object.assign(formData, mappedModel)
     } else {
       const params = props.extraQueryString
         ? new URLSearchParams(props.extraQueryString)
@@ -35,7 +38,8 @@ export function useFormData(props) {
 
       try {
         const data = await apiClient.get(`${props.path}/${props.modelId}`, { params })
-        Object.assign(formData, data)
+        const mappedData = applyAfterLoad(data)
+        Object.assign(formData, mappedData)
       } catch (error) {
         console.error('Error loading form data:', error)
         Object.assign(formData, props.model)
@@ -77,9 +81,12 @@ export function useFormData(props) {
         })
       })
 
+      // Apply beforeSubmit mappers (does not mutate the model)
+      const mappedSubmitData = applyBeforeSubmit(submitData)
+
       const savedModel = isCreateForm.value
-        ? await apiClient.post(props.path, submitData)
-        : await apiClient.patch(`${props.path}/${props.modelId}`, submitData)
+        ? await apiClient.post(props.path, mappedSubmitData)
+        : await apiClient.patch(`${props.path}/${props.modelId}`, mappedSubmitData)
 
       // Handle image uploads if any
       const imageFields = props.schema.fields.filter(field => field.type === 'imageUpload')

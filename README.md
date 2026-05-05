@@ -10,6 +10,7 @@ A Vue 3 CRUD form component powered by [vue3-form-generator](https://github.com/
 - **i18n Support** — Automatic translation of field labels and placeholders via vue-i18n
 - **Validation** — Built-in and custom validators with error styling
 - **Customizable Fields** — Register custom field types and components
+- **Data Mappers** — Transform data after loading from API and before submitting
 - **TypeScript Ready** — Complete TypeScript definitions included
 
 ## Installation
@@ -127,6 +128,7 @@ const userId = 123 // For edit mode; omit for create mode
 | `redirectParams` | Object | No | `{}` | Parameters for redirect route |
 | `formTitle` | String | No | `''` | Form header title |
 | `formOptions` | Object | No | `{ validateAfterLoad: false, validate: 'onChanged' }` | vue3-form-generator options |
+| `mappers` | Object | No | `{}` | Data transformation pipelines (see [Mappers](#mappers)) |
 
 ## Schema Format
 
@@ -233,6 +235,91 @@ Transform functions modify field values before form submission:
 }
 ```
 
+## Mappers
+
+Mappers let you reshape data between the API and the form model. This is useful when the API data structure doesn't match the form schema — for example, when a single `tagItems` relation contains mixed types (categories, producers) that you want to edit as separate fields.
+
+The `mappers` prop accepts an object with two optional keys:
+
+| Event | When it runs | Mutates model? |
+|-------|-------------|----------------|
+| `afterLoad` | After data is loaded from API, before assigning to the form model | Yes — the mapped result becomes the model |
+| `beforeSubmit` | After field transforms, before sending to the API | No — a copy is mapped and sent; the form model stays unchanged |
+
+Each key holds an **array of functions**. Functions run sequentially (piped) — each receives the data object and must return the transformed data.
+
+### Example: Splitting and Merging Relations
+
+```vue
+<template>
+  <CrudForm
+    :schema="productSchema"
+    :model="productModel"
+    :model-id="productId"
+    path="products"
+    redirect-route="products.list"
+    :mappers="productMappers"
+  />
+</template>
+
+<script setup>
+// The API stores categories and producers together in `tagItems`.
+// The form schema has separate `categories` and `producers` fields.
+
+const productMappers = {
+  afterLoad: [
+    (data) => {
+      data.categories = data.tagItems?.filter(t => t.type === 'category') ?? []
+      data.producers = data.tagItems?.filter(t => t.type === 'producer') ?? []
+      delete data.tagItems
+      return data
+    }
+  ],
+  beforeSubmit: [
+    (data) => {
+      data.tagItems = [...(data.categories ?? []), ...(data.producers ?? [])]
+      delete data.categories
+      delete data.producers
+      return data
+    }
+  ]
+}
+
+const productSchema = {
+  fields: [
+    { type: 'input', model: 'name', label: 'productName' },
+    { type: 'select', model: 'categories', label: 'productCategories', multiple: true },
+    { type: 'select', model: 'producers', label: 'productProducers', multiple: true },
+  ]
+}
+
+const productModel = {
+  name: '',
+  categories: [],
+  producers: []
+}
+</script>
+```
+
+### Chaining Multiple Mappers
+
+Mappers are piped, so you can compose small, focused transformations:
+
+```javascript
+const mappers = {
+  afterLoad: [
+    splitTagItems,     // step 1: split tagItems into categories + producers
+    parseDates,        // step 2: convert date strings to Date objects
+  ],
+  beforeSubmit: [
+    formatDates,       // step 1: convert Dates back to ISO strings
+    mergeTagItems,     // step 2: merge categories + producers into tagItems
+  ]
+}
+```
+
+> **Note:** If a mapper function returns `undefined`, the previous data is kept unchanged. Always return the data object from your mapper functions.
+
 ## Custom Components
 
 ```javascript
@@ -259,7 +346,7 @@ registerCustomComponent('myField', {
 ```javascript
 import { useFormData } from '@uecsio/crud-form'
 
-const { formData, formLoaded, isLoading, isCreateForm, loadFormData, handleSubmit, handleCancel } = useFormData(props)
+const { formData, formLoaded, isLoading, isCreateForm, loadFormData, handleSubmit, handleCancel } = useFormData(props, mappers)
 ```
 
 ### useFormValidation
@@ -269,6 +356,19 @@ import { useFormValidation } from '@uecsio/crud-form'
 
 const { isValid, fieldErrors, onFieldValidated, validateField, validateForm, resetValidation } = useFormValidation()
 ```
+
+### useFormMappers
+
+```javascript
+import { useFormMappers } from '@uecsio/crud-form'
+
+const { applyAfterLoad, applyBeforeSubmit } = useFormMappers(mappers)
+```
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `applyAfterLoad` | `(data: Object) => Object` | Runs `afterLoad` mapper pipeline on the given data |
+| `applyBeforeSubmit` | `(data: Object) => Object` | Runs `beforeSubmit` mapper pipeline on a shallow copy of the data |
 
 ## Styling
 
