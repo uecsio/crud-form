@@ -1,6 +1,6 @@
 {
   "name": "@uecsio/crud-form",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A Vue 3 CRUD form component with vue3-form-generator, Tailwind CSS styling, async validation, and customizable field types",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",

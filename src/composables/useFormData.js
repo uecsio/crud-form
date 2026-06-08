@@ -10,7 +10,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useFormMappers } from './useFormMappers.js'
 
-export function useFormData(props, mappers = {}) {
+export function useFormData(props, mappers = {}, emit = null) {
   const router = useRouter()
   const { t } = useI18n()
   const apiClient = inject('crudFormApiClient')
@@ -64,7 +64,6 @@ export function useFormData(props, mappers = {}) {
     isLoading.value = true
 
     try {
-      // Build submission data with only schema-defined fields
       const schemaFieldNames = props.schema.fields.map(f => f.model)
       const submitData = {}
       for (const key of schemaFieldNames) {
@@ -73,7 +72,6 @@ export function useFormData(props, mappers = {}) {
         }
       }
 
-      // Apply transforms
       props.schema.fields.filter(el => el.transforms).forEach(el => {
         el.transforms.forEach(transformFunction => {
           const fieldName = el.model
@@ -81,14 +79,12 @@ export function useFormData(props, mappers = {}) {
         })
       })
 
-      // Apply beforeSubmit mappers (does not mutate the model)
       const mappedSubmitData = applyBeforeSubmit(submitData)
 
       const savedModel = isCreateForm.value
         ? await apiClient.post(props.path, mappedSubmitData)
         : await apiClient.patch(`${props.path}/${props.modelId}`, mappedSubmitData)
 
-      // Handle image uploads if any
       const imageFields = props.schema.fields.filter(field => field.type === 'imageUpload')
       for (const imageField of imageFields) {
         if (formData[imageField.model]) {
@@ -97,15 +93,16 @@ export function useFormData(props, mappers = {}) {
         }
       }
 
-      // Redirect
+      emit?.('saved', savedModel)
+
       if (props.redirectRoute === 'prev') {
         router.back()
       } else {
         router.push({ name: props.redirectRoute, params: props.redirectParams })
       }
-
     } catch (error) {
       console.error('Error saving data:', error)
+      emit?.('error', error)
     } finally {
       isLoading.value = false
     }

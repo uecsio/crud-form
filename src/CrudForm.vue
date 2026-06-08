@@ -102,6 +102,8 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['saved', 'error'])
+
 // Composables
 const { t, te } = useI18n()
 const {
@@ -110,7 +112,7 @@ const {
   isLoading,
   loadFormData,
   handleSubmit
-} = useFormData(props, props.mappers)
+} = useFormData(props, props.mappers, emit)
 
 const {
   isValid,
